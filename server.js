@@ -7,10 +7,6 @@ var bodyParser = require("body-parser");
 var environment = process.env.NODE_ENV || 'development';
 exports.environment = environment;
 
-//var connectionURL = process.env.DATABASE_URL || 'postgres://ythaatkhclsrbf:dpb30mSasjoou_bWUS2WeKjt0q@ec2-54-225-195-254.compute-1.amazonaws.com:5432/delv202g5ov939';
-//var pg = require('pg');
-//pg.defaults.ssl = true;
-
 var EventEmitter = require('events').EventEmitter;
 var societyclient = require('./libs/societyclient');
 var credential = require('./model/Credential');
@@ -96,7 +92,7 @@ app.post("/api/v0/application", function (req, res) {
   var newContact = req.body;
   var app = req.body.id;
   var content = req.body.content;
-  console.log("Society One Application Notification Received:", app);
+  console.log("Origination Application Notification Received:", app);
   //newContact.createDate = new Date();
   console.log("ID: " + req.body);
   //console.log(req.headers['content-type']);

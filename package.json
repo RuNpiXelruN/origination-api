@@ -1,0 +1,26 @@
+{
+  "name": "OriginationApps",
+  "version": "1.0.0",
+  "description": "An origination-api app that allows Picstarter and Vedacode to notify LFS",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": "5.11.1"
+  },
+  "dependencies": {
+    "basic-auth": "^1.0.4",
+    "body-parser": "^1.13.3",
+    "dateformat": "^1.0.12",
+    "express": "^4.13.3",
+    "nforce": "^1.5.0",
+    "pg": "^4.5.6",
+    "promise": "^7.1.1",
+    "request": "^2.72.0",
+    "sequelize": "^3.23.4",
+    "simple-oauth2": "^0.7.0",
+    "truncate": "^2.0.0"
+  }
+}

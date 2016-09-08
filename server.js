@@ -10,6 +10,7 @@ exports.environment = environment;
 var EventEmitter = require('events').EventEmitter;
 var societyclient = require('./libs/societyclient');
 var credential = require('./model/Credential');
+var applicationStore = require('./libs/salesforceConnect');
 var fetchBasicAuthFromDatabase = {};
 var fetchBasicAuthFromConfig = {};
 
@@ -21,8 +22,8 @@ var submitApplicationProcess = new EventEmitter();
  * processing status is updated when you are done.
  */
 submitApplicationProcess.on('submit-application', function (application) {
-  console.log(" submit submitApplicationProcess ", application);
-  societyclient.sendMessage(application); //A131909 A130016
+  //console.log(" submit submitApplicationProcess ", application);
+  applicationStore.saveApplication(application); //A131909 A130016
 });
 
 var app = express();
@@ -107,7 +108,7 @@ app.post("/api/v0/application", function (req, res) {
     //emit sync response
     handleSucess(res, "notification done", 201);
     //then emit save application to PG
-    submitApplicationProcess.emit('submit-application', app);
+    submitApplicationProcess.emit('submit-application', req);
     res.end();
   }
 });

@@ -14,7 +14,7 @@
       "connectString": "postgres://ythaatkhclsrbf:dpb30mSasjoou_bWUS2WeKjt0q@ec2-54-225-195-254.compute-1.amazonaws.com:5432/delv202g5ov939"
     },
     "messages": {
-      "quotaguardstaticURL": "http://quotaguard6398:fe41e4de067b@us-east-static-01.quotaguard.com:9293",
+      "quotaguardstaticURL": "http://quotaguard6632:15784d00a884@us-east-static-01.quotaguard.com:9293",
         "notificationURL": "https://uat2-identityservice.clearmatch.co/connect/token",
           "applicationResourceURL":"https://uat2-api.clearmatch.co/v1/unsecuredLoans/application/",
             "client_id":"uat2latitudeaus",
@@ -31,8 +31,8 @@
             "redirectUri": "http://localhost:3000/oauth/_callback",
               "apiVersion": "v35.0",
                 "environment":"sandbox",
-                  "username":"gewsprod@ge.com.orig.orignzqa",
-                    "password":"rdss@1234KFLKuatCMksPO4Wxr8m6oAlf",
+                  "username":"gewsprod@ge.com.orig.orignzdev",
+                    "password":"rds@5678",
                       "mode":"multi",
                         "Branch__c":"a0A9000000NjWJk",
                           "Brand_Lookup__c":"a0f90000003ZwGj",

@@ -4,7 +4,8 @@ var replace = require('replace');
 var dateFormat = require('dateformat');
 var fs = require("fs");
 var env = require('../server');
-var jsonfile = require('jsonfile')
+var jsonfile = require('jsonfile');
+var wrap = require('word-wrap');
 
 var app = {};
 var applicant = {};
@@ -32,11 +33,27 @@ var attachment = '';
 
 
 /* This function will perform tarnsformation for complete Opportunity Data receieved from 3rd Party */
-createOpportunity = (application) => {
+createOpportunity = (application , accountID) => {
   console.log(' START oppertunity Object  :');
   var oppertunity = nforce.createSObject('Opportunity');
-  var closeDate = dateFormat('11/10/2018', "yyyy-mm-dd");
-  oppertunity.set('X3rd_Party_Lead_Number__c', application.body.sessionId);
+  var closeDate = ""; //dateFormat('11/10/2018', "yyyy-mm-dd");
+  var loanPurpose = application.body.loanPurpose;
+  var leadStatus = application.body.status;
+  var myDate = new Date();
+  var leadFirstName = application.body.applicantDetails[0].firstName;
+  var leadID = application.body.sessionId;
+  var leadName = "";
+  if (application.body.sourceId == '3'){
+ leadName = "Veda Quote Lead - " + application.body.uniqueId;
+  } else {
+leadName = "Picstarter - " + leadFirstName + leadID;
+  }
+
+
+  if (loanPurpose == 'Other') {
+    loanPurpose = '';
+  }
+  oppertunity.set('X3rd_Party_Lead_Number__c', application.body.uniqueId);
   oppertunity.set('Promo_Loan_Offer_amount__c', application.body.loanAmount);
   oppertunity.set('Loan_Purpose__c', application.body.loanPurpose); //Car purchase
   oppertunity.set('Loan_Term__c', application.body.loanTerm);
@@ -44,23 +61,68 @@ createOpportunity = (application) => {
   oppertunity.set('X3rd_Party_Photo_Tag__c', application.body.imageTag);
   oppertunity.set('CallBack_Time__c', application.body.callbackTime);
   oppertunity.set('X3rd_Party_Lead_Status__c', application.body.status);
-  oppertunity.set('X3rd_Party_Lead_Source__c', application.body.leadSource);
-  oppertunity.set('Name', 'AUS Outbound 8');
+  oppertunity.set('X3rd_Party_Lead_Source__c', application.body.leadSource); //"PicStarter"
+
+  oppertunity.set('Name', leadName);
+
+  if (leadStatus = 'Complete') {
+    //closeDate = dateFormat(myDate.getDate(), "yyyy-mm-dd") + 30;
+    closeDate = dateFormat('11/10/2018', "yyyy-mm-dd");
+  }
+  if (leadStatus = 'Incomplete') {
+    // closeDate = dateFormat(myDate.getDate(), "yyyy-mm-dd") + 1;
+    closeDate = dateFormat('11/10/2018', "yyyy-mm-dd");
+  }
+  console.log(' Close Date :', closeDate);
+  console.log(' Lead Name :', leadName);
+
   oppertunity.set('CloseDate', closeDate);
   oppertunity.set('StageName', 'New');
+  if (application.body.sourceId == '3'){
+    oppertunity.set('Branch_Name__c', 'AUS Outbound 9');
+    oppertunity.set('X3rd_Marketing_Consent__c', true);
+    
+  } else {
   oppertunity.set('Branch_Name__c', 'AUS Outbound 8');
+  }
+
   oppertunity.set('Region__c', 'AU');
+  oppertunity.set('AccountId', accountID);
+  
   console.log(' END  oppertunity Object  :');
   return oppertunity;
 
 }
 
-/* This function will perform tarnsformation for complete Opportunity Data receieved from 3rd Party */
+/* This function will perform tarnsformation for complete Account Data receieved from 3rd Party */
 createAccount = (application, salesforceID) => {
   console.log(' Inside Account  Object  :');
   account = nforce.createSObject('Account');
-  account.set('firstname', application.body.applicantDetails[0].firstName);
-  account.set('lastName', application.body.applicantDetails[0].lastName);
+  if(application.body.applicantDetails[0].firstName){
+    account.set('firstname', application.body.applicantDetails[0].firstName);
+  }
+  
+  if(application.body.applicantDetails[0].middleName){
+account.set('Middle_Name__pc', application.body.applicantDetails[0].middleName);
+  }
+
+    if(application.body.applicantDetails[0].lastName){
+account.set('lastName', application.body.applicantDetails[0].lastName);
+  }
+
+   if(application.body.applicantDetails[0].gender){
+account.set('Gender__c', application.body.applicantDetails[0].gender);
+  }
+
+   if(application.body.applicantDetails[0].emailAddress){
+account.set('PersonEmail', application.body.applicantDetails[0].emailAddress);
+  }
+ 
+if(application.body.applicantDetails[0].dateOfBirth){
+  var dob = dateFormat(application.body.dateOfBirth, "dd/mm/yyyy");
+    account.set('Date_Of_Birth__pc', dob);
+  }
+
   account.set('PersonMobilePhone', application.body.applicantDetails[0].mobilePhone);
   account.set('PersonMailingState', application.body.applicantDetails[0].addresses[0].state);
   return account;
@@ -82,9 +144,27 @@ createAttachment = (application, salesforceID) => {
   console.log(' Inside create Attachment   :');
   var file = 'conversation.text';
   var obj = application.body.conversation;
-  jsonfile.writeFileSync(file, obj)
   var attachment = nforce.createSObject('Attachment');
-  attachment.setAttachment(file, JSON.stringify(obj));
+  //var textObj = "";
+  var conversationData = [];
+  if (obj) {
+    obj.forEach(function (conversationObject) {
+      var textObj = "";
+      textObj = 'Question :  ';
+      textObj = textObj + conversationObject.question +"   ";
+      wrap(textObj, {newline: '\n\n'});
+      textObj = textObj + 'Answer :  ';
+      textObj = textObj +conversationObject.answer +"   ";
+      wrap(textObj, {newline: '\n\n'});
+      conversationData.push(textObj);
+    });
+    var conversationDataInString  = JSON.stringify(conversationData).replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
+    console.log(" final chat transcript ", conversationDataInString);
+  }
+
+  jsonfile.writeFileSync(file, obj)
+  
+  attachment.setAttachment(file, JSON.stringify(conversationData));
   attachment.set('Name', 'PicStarter Transcript');
   attachment.set('ParentId', salesforceID);
   return attachment;
@@ -121,6 +201,9 @@ function insertDocumentAttachment(application, oauth, salesforceID) {
   }
 }
 
+function populateStatus(application, oauth, salesforceApplicantID, statusMessage) {
+
+}
 
 exports.saveApplication = (application) => {
 
@@ -144,6 +227,8 @@ exports.saveApplication = (application) => {
   console.log(" clientId : ", clientId);
   console.log(" clientSecret ", clientSecret);
   console.log(" sfdcEnvironment ", sfdcEnvironment);
+  console.log(" username ", username);
+  console.log(" password ", password);
 
   branchLookup = configuration[env.environment].salesforce.Branch__c;
   brandLookup = configuration[env.environment].salesforce.Brand_Lookup__c;
@@ -181,7 +266,9 @@ exports.saveApplication = (application) => {
             salesforceApplicantID = resp.id;
             console.log('It worked !! salesforceApplicantID ', salesforceApplicantID);
             //insertRelatedDocument(application, oauth, salesforceID);
+            if (application.body.sourceId != '3'){
             insertDocumentAttachment(application, oauth, salesforceApplicantID);
+            }
             setTimeout(function () {
               console.log('Populate Salesforce Application Status Log');
               populateStatus(application, oauth, salesforceApplicantID, statusMessage);

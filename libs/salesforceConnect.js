@@ -99,15 +99,17 @@ createAccount = (application, salesforceID) => {
   console.log(' Inside Account  Object  :');
   account = nforce.createSObject('Account');
   if(application.body.applicantDetails[0].firstName){
-    account.set('firstname', application.body.applicantDetails[0].firstName);
+    account.set('firstName', application.body.applicantDetails[0].firstName);
   }
   
   if(application.body.applicantDetails[0].middleName){
 account.set('Middle_Name__pc', application.body.applicantDetails[0].middleName);
   }
 
-    if(application.body.applicantDetails[0].lastName){
-account.set('lastName', application.body.applicantDetails[0].lastName);
+    if(application.body.applicantDetails[0].lastName && application.body.sourceId == '3'){
+     account.set('lastName', application.body.applicantDetails[0].lastName);
+  } else {
+    account.set('lastName', 'PicStarter');
   }
 
    if(application.body.applicantDetails[0].gender){

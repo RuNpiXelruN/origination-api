@@ -100,16 +100,20 @@ app.post("/api/v0/application", function (req, res) {
   if (!(req.body.uniqueId || req.body.sessionId)) {
     handleError(res, "Invalid user input", "Must provide a Unique ID  or Valid Session ID.", 400);
     //res.status(400).send("Invalid user input");
-  } else {
+  } else if (req.body.optOut == true) {
+    handleError(res, "Opt Out is true", "Exclude these leads from entering Salesforce", 400);
+  }
+  else {
     console.log("UNIQUE ID : " + req.body.uniqueId);
     console.log("SESION ID : " + req.body.sessionId);
     console.log("leadSource: " + req.body.leadSource);
     console.log("sourceId: " + req.body.sourceId);
-    //emit sync response
-    handleSucess(res, "notification done", 201);
+
     //then emit save application to PG
     submitApplicationProcess.emit('submit-application', req);
-    res.end();
+    //emit sync response
+    handleSucess(res, "notification done", 201);
+    //res.end();
   }
 });
 module.exports = app;

@@ -16,9 +16,9 @@ var attachment = {};
 
 //Status field 
 var oauth;
-var applicationStatusFlag = true;
-var applicantStatusFlag = true;
-var loanPurposeFlag = true;
+var accountStatusFlag = true;
+var oppertunityStatusFlag = true;
+var attachmentStatusFlag = true;
 var statusMessage = '';
 var configuration = '';
 var org = '';
@@ -31,9 +31,15 @@ var account = '';
 var document = '';
 var attachment = '';
 
+function addDays(date, days) {
+  var result = new Date(date);
+  result.setDate(result.getDate() + days);
+  console.log(' setDate :', result);
+  return result;
+}
 
 /* This function will perform tarnsformation for complete Opportunity Data receieved from 3rd Party */
-createOpportunity = (application , accountID) => {
+createOpportunity = (application, accountID) => {
   console.log(' START oppertunity Object  :');
   var oppertunity = nforce.createSObject('Opportunity');
   var closeDate = ""; //dateFormat('11/10/2018', "yyyy-mm-dd");
@@ -43,10 +49,10 @@ createOpportunity = (application , accountID) => {
   var leadFirstName = application.body.applicantDetails[0].firstName;
   var leadID = application.body.sessionId;
   var leadName = "";
-  if (application.body.sourceId == '3'){
- leadName = "Veda Quote Lead - " + application.body.uniqueId;
+  if (application.body.sourceId == '3') {
+    leadName = "Veda Quote Lead - " + application.body.uniqueId;
   } else {
-leadName = "Picstarter - " + leadFirstName + leadID;
+    leadName = "Picstarter - " + leadFirstName + leadID;
   }
 
 
@@ -61,34 +67,43 @@ leadName = "Picstarter - " + leadFirstName + leadID;
   oppertunity.set('X3rd_Party_Photo_Tag__c', application.body.imageTag);
   oppertunity.set('CallBack_Time__c', application.body.callbackTime);
   oppertunity.set('X3rd_Party_Lead_Status__c', application.body.status);
-  oppertunity.set('X3rd_Party_Lead_Source__c', application.body.leadSource); //"PicStarter"
+
 
   oppertunity.set('Name', leadName);
+  var todayDate = dateFormat(myDate, 'yyyy-mm-dd');
+  var cdate = '';
+  var formattedClosedate = '';
+  console.log(" DATE ------ ", todayDate);
+  console.log(" Lead Status ", leadStatus);
 
-  if (leadStatus = 'Complete') {
-    //closeDate = dateFormat(myDate.getDate(), "yyyy-mm-dd") + 30;
-    closeDate = dateFormat('11/10/2018', "yyyy-mm-dd");
+  if (leadStatus == 'Complete') {
+    cdate = addDays(todayDate, 30);
+    formattedClosedate = dateFormat(cdate, 'yyyy-mm-dd');
   }
-  if (leadStatus = 'Incomplete') {
-    // closeDate = dateFormat(myDate.getDate(), "yyyy-mm-dd") + 1;
-    closeDate = dateFormat('11/10/2018', "yyyy-mm-dd");
+  if (leadStatus == 'Incomplete') {
+    cdate = addDays(todayDate, 1);
+    formattedClosedate = dateFormat(cdate, 'yyyy-mm-dd');
   }
-  console.log(' Close Date :', closeDate);
+
   console.log(' Lead Name :', leadName);
+  console.log(" DATE ------ ", todayDate);
+  console.log(" CLOSE DATE ------ ", formattedClosedate);
 
-  oppertunity.set('CloseDate', closeDate);
+  oppertunity.set('CloseDate', formattedClosedate);
   oppertunity.set('StageName', 'New');
-  if (application.body.sourceId == '3'){
+  if (application.body.sourceId == '3') {
     oppertunity.set('Branch_Name__c', 'AUS Outbound 9');
     oppertunity.set('X3rd_Marketing_Consent__c', true);
-    
+    oppertunity.set('X3rd_Party_Lead_Source__c', '3'); //"PicStarter"
+
   } else {
-  oppertunity.set('Branch_Name__c', 'AUS Outbound 8');
+    oppertunity.set('Branch_Name__c', 'AUS Outbound 8');
+    oppertunity.set('X3rd_Party_Lead_Source__c', application.body.leadSource); //"PicStarter"
   }
 
   oppertunity.set('Region__c', 'AU');
   oppertunity.set('AccountId', accountID);
-  
+
   console.log(' END  oppertunity Object  :');
   return oppertunity;
 
@@ -97,36 +112,46 @@ leadName = "Picstarter - " + leadFirstName + leadID;
 /* This function will perform tarnsformation for complete Account Data receieved from 3rd Party */
 createAccount = (application, salesforceID) => {
   console.log(' Inside Account  Object  :');
+  var firstName = '';
+  var lastName = '';
   account = nforce.createSObject('Account');
-  if(application.body.applicantDetails[0].firstName){
-    account.set('firstName', application.body.applicantDetails[0].firstName);
-  }
-  
-  if(application.body.applicantDetails[0].middleName){
-account.set('Middle_Name__pc', application.body.applicantDetails[0].middleName);
+  if (application.body.applicantDetails[0].firstName) {
+    firstName = truncate(application.body.applicantDetails[0].firstName, 15);
+    account.set('firstName', firstName);
   }
 
-    if(application.body.applicantDetails[0].lastName && application.body.sourceId == '3'){
-     account.set('lastName', application.body.applicantDetails[0].lastName);
+  if (application.body.applicantDetails[0].middleName) {
+    account.set('Middle_Name__pc', application.body.applicantDetails[0].middleName);
+  }
+
+  if (application.body.applicantDetails[0].lastName && application.body.sourceId == '3') {
+    lastName = truncate(application.customerRelationships[0].surname, 20);
+    account.set('lastName', lastName);
   } else {
     account.set('lastName', 'PicStarter');
   }
 
-   if(application.body.applicantDetails[0].gender){
-account.set('Gender__c', application.body.applicantDetails[0].gender);
+  var genderDesc = {
+    "Male": "M",
+    "Female": "F"
+  };
+
+  if (application.body.applicantDetails[0].gender) {
+    account.set('Gender__c', application.body.applicantDetails[0].gender);
   }
 
-   if(application.body.applicantDetails[0].emailAddress){
-account.set('PersonEmail', application.body.applicantDetails[0].emailAddress);
+  if (application.body.applicantDetails[0].emailAddress) {
+    account.set('PersonEmail', application.body.applicantDetails[0].emailAddress);
   }
- 
-if(application.body.applicantDetails[0].dateOfBirth){
-  var dob = dateFormat(application.body.dateOfBirth, "dd/mm/yyyy");
+
+  if (application.body.applicantDetails[0].dateOfBirth) {
+    var dob = dateFormat(application.body.dateOfBirth, "dd/mm/yyyy");
     account.set('Date_Of_Birth__pc', dob);
   }
 
   account.set('PersonMobilePhone', application.body.applicantDetails[0].mobilePhone);
   account.set('PersonMailingState', application.body.applicantDetails[0].addresses[0].state);
+  account.set('Record_Type_Indicator__c', '1');
   return account;
 
 }
@@ -146,6 +171,7 @@ createAttachment = (application, salesforceID) => {
   console.log(' Inside create Attachment   :');
   var file = 'conversation.text';
   var obj = application.body.conversation;
+  var attachmentName = 'PicStarter Conversation ' + salesforceID;
   var attachment = nforce.createSObject('Attachment');
   //var textObj = "";
   var conversationData = [];
@@ -153,21 +179,21 @@ createAttachment = (application, salesforceID) => {
     obj.forEach(function (conversationObject) {
       var textObj = "";
       textObj = 'Question :  ';
-      textObj = textObj + conversationObject.question +"   ";
-      wrap(textObj, {newline: '\n\n'});
+      textObj = textObj + conversationObject.question + "   ";
+      wrap(textObj, { newline: '\n\n' });
       textObj = textObj + 'Answer :  ';
-      textObj = textObj +conversationObject.answer +"   ";
-      wrap(textObj, {newline: '\n\n'});
+      textObj = textObj + conversationObject.answer + "   ";
+      wrap(textObj, { newline: '\n\n' });
       conversationData.push(textObj);
     });
-    var conversationDataInString  = JSON.stringify(conversationData).replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
+    var conversationDataInString = JSON.stringify(conversationData).replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
     console.log(" final chat transcript ", conversationDataInString);
   }
 
   jsonfile.writeFileSync(file, obj)
-  
+
   attachment.setAttachment(file, JSON.stringify(conversationData));
-  attachment.set('Name', 'PicStarter Transcript');
+  attachment.set('Name', attachmentName);
   attachment.set('ParentId', salesforceID);
   return attachment;
 }
@@ -195,7 +221,7 @@ function insertDocumentAttachment(application, oauth, salesforceID) {
     org.insert({ sobject: attachmentDoc, oauth: oauth }, function (err, resp) {
       if (!err) console.log('It worked !! attachment');
       if (err) {
-        expenseStatusFlag = false;
+        attachmentStatusFlag = false;
         console.log('ERROR MESSAGE :attachment', err);
       }
     });
@@ -204,6 +230,31 @@ function insertDocumentAttachment(application, oauth, salesforceID) {
 }
 
 function populateStatus(application, oauth, salesforceApplicantID, statusMessage) {
+  var applicationSubmitStatus = {};
+  console.log(' accountStatusFlag ', accountStatusFlag);
+  console.log(' oppertunityStatusFlag ', oppertunityStatusFlag);
+  console.log(' attachmentStatusFlag ', attachmentStatusFlag);
+  applicationSubmitStatus = nforce.createSObject('X3rd_Party_Application_Status_Log__c');
+  applicationSubmitStatus.set('X3rd_Party_Application_Number__c', salesforceApplicantID);
+  if (accountStatusFlag && oppertunityStatusFlag && attachmentStatusFlag) {
+    applicationSubmitStatus.set('Status__c', 'SUC_001');
+    applicationSubmitStatus.set('Status_Code__c', 'SUC_001');
+    applicationSubmitStatus.set('Status_Message__c', ' Application :Application and Child create successful');
+    console.log('S1 Application data insertion completed');
+  } else {
+    applicationSubmitStatus.set('Status__c', 'ERR_002');
+    applicationSubmitStatus.set('Status_Code__c', 'ERR_002');
+    applicationSubmitStatus.set('Status_Message__c', statusMessage);
+    console.log('ERR_002 : Application data insertion  Failed');
+  }
+
+  org.insert({ sobject: applicationSubmitStatus, oauth: oauth }, function (err, resp) {
+    if (!err) console.log('It worked !! X3rd_Party_Application_Status_Log__c');
+    if (err) {
+      //incomeStatusFlag = false;
+      console.log('ERROR MESSAGE :X3rd_Party_Application_Status_Log__c', err);
+    }
+  });
 
 }
 
@@ -268,8 +319,8 @@ exports.saveApplication = (application) => {
             salesforceApplicantID = resp.id;
             console.log('It worked !! salesforceApplicantID ', salesforceApplicantID);
             //insertRelatedDocument(application, oauth, salesforceID);
-            if (application.body.sourceId != '3'){
-            insertDocumentAttachment(application, oauth, salesforceApplicantID);
+            if (application.body.sourceId != '3') {
+              insertDocumentAttachment(application, oauth, salesforceApplicantID);
             }
             setTimeout(function () {
               console.log('Populate Salesforce Application Status Log');
@@ -277,10 +328,10 @@ exports.saveApplication = (application) => {
             }, 7000);
           }
           if (err) {
-            applicantStatusFlag = false;
+            oppertunityStatusFlag = false;
             console.log('ERROR MESSAGE :Opportunity ', err);
             statusMessage = err.message;
-            //populateStatus(application, oauth, salesforceApplicantID, statusMessage);
+            populateStatus(application, oauth, salesforceApplicantID, statusMessage);
             console.log(" STATUS MESSAGE :: ", err.message);
           }
 
@@ -288,9 +339,9 @@ exports.saveApplication = (application) => {
 
       }
       if (err) {
-        applicationStatusFlag = false;
+        accountStatusFlag = false;
         statusMessage = err.message;
-        //populateStatus(application, oauth, salesforceApplicantID, statusMessage);
+        populateStatus(application, oauth, salesforceApplicantID, statusMessage);
         console.log('ERROR MESSAGE ', err);
         //console.log(" STATUS MESSAGE :: ", err.message);
       }

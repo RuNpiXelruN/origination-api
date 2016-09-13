@@ -22,7 +22,7 @@ var submitApplicationProcess = new EventEmitter();
  * processing status is updated when you are done.
  */
 submitApplicationProcess.on('submit-application', function (application) {
-  //console.log(" submit submitApplicationProcess ", application);
+  console.log(" submit submitApplicationProcess ", application);
   applicationStore.saveApplication(application); //A131909 A130016
 });
 
@@ -96,6 +96,10 @@ app.post("/api/v0/application", function (req, res) {
   console.log("Origination Application Notification Received:", app);
   //newContact.createDate = new Date();
   console.log("ID: " + req.body);
+  console.log("UNIQUE ID : " + req.body.uniqueId);
+  console.log("SESION ID : " + req.body.sessionId);
+  console.log("leadSource: " + req.body.leadSource);
+  console.log("sourceId: " + req.body.sourceId);
   //console.log(req.headers['content-type']);
   if (!(req.body.uniqueId || req.body.sessionId)) {
     handleError(res, "Invalid user input", "Must provide a Unique ID  or Valid Session ID.", 400);
@@ -104,10 +108,10 @@ app.post("/api/v0/application", function (req, res) {
     handleError(res, "Opt Out is true", "Exclude these leads from entering Salesforce", 400);
   }
   else {
-    console.log("UNIQUE ID : " + req.body.uniqueId);
-    console.log("SESION ID : " + req.body.sessionId);
-    console.log("leadSource: " + req.body.leadSource);
-    console.log("sourceId: " + req.body.sourceId);
+    console.log("In ELSE UNIQUE ID : " + req.body.uniqueId);
+    console.log("In ELSE  SESION ID : " + req.body.sessionId);
+    console.log("In ELSE  leadSource: " + req.body.leadSource);
+    console.log("In ELSE  sourceId: " + req.body.sourceId);
 
     //then emit save application to PG
     submitApplicationProcess.emit('submit-application', req);

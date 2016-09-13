@@ -51,8 +51,10 @@ createOpportunity = (application, accountID) => {
   var leadName = "";
   if (application.body.sourceId == '3') {
     leadName = "Veda Quote Lead - " + application.body.uniqueId;
+    leadName = truncate(leadName, 120);
   } else {
     leadName = "Picstarter - " + leadFirstName + leadID;
+    leadName = truncate(leadName, 120);
   }
 
 
@@ -89,18 +91,21 @@ createOpportunity = (application, accountID) => {
   console.log(" DATE ------ ", todayDate);
   console.log(" CLOSE DATE ------ ", formattedClosedate);
 
-  oppertunity.set('CloseDate', formattedClosedate);
-  oppertunity.set('StageName', 'New');
+
   if (application.body.sourceId == '3') {
     oppertunity.set('Branch_Name__c', 'AUS Outbound 9');
     oppertunity.set('X3rd_Marketing_Consent__c', true);
     oppertunity.set('X3rd_Party_Lead_Source__c', '3'); //"PicStarter"
+    cdate = addDays(todayDate, 30);
+    formattedClosedate = dateFormat(cdate, 'yyyy-mm-dd');
 
   } else {
     oppertunity.set('Branch_Name__c', 'AUS Outbound 8');
     oppertunity.set('X3rd_Party_Lead_Source__c', application.body.leadSource); //"PicStarter"
   }
 
+  oppertunity.set('CloseDate', formattedClosedate);
+  oppertunity.set('StageName', 'New');
   oppertunity.set('Region__c', 'AU');
   oppertunity.set('AccountId', accountID);
 
@@ -125,19 +130,19 @@ createAccount = (application, salesforceID) => {
   }
 
   if (application.body.applicantDetails[0].lastName && application.body.sourceId == '3') {
-    lastName = truncate(application.customerRelationships[0].surname, 20);
+    lastName = truncate(application.body.applicantDetails[0].lastName, 20);
     account.set('lastName', lastName);
   } else {
     account.set('lastName', 'PicStarter');
   }
 
   var genderDesc = {
-    "Male": "M",
-    "Female": "F"
+    "m": "Male",
+    "f": "Female"
   };
 
   if (application.body.applicantDetails[0].gender) {
-    account.set('Gender__c', application.body.applicantDetails[0].gender);
+    account.set('Gender__c', genderDesc[application.body.applicantDetails[0].gender]);
   }
 
   if (application.body.applicantDetails[0].emailAddress) {

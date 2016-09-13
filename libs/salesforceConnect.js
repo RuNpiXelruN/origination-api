@@ -95,7 +95,7 @@ createOpportunity = (application, accountID) => {
   if (application.body.sourceId == '3') {
     oppertunity.set('Branch_Name__c', 'AUS Outbound 9');
     oppertunity.set('X3rd_Marketing_Consent__c', true);
-    oppertunity.set('X3rd_Party_Lead_Source__c', '3'); //"PicStarter"
+    oppertunity.set('X3rd_Party_Lead_Source__c', 'Veda Quote'); //"PicStarter"
     cdate = addDays(todayDate, 30);
     formattedClosedate = dateFormat(cdate, 'yyyy-mm-dd');
 

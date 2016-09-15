@@ -22,8 +22,8 @@ var submitApplicationProcess = new EventEmitter();
  * processing status is updated when you are done.
  */
 submitApplicationProcess.on('submit-application', function (application) {
-  console.log(" submit submitApplicationProcess ", application);
-  applicationStore.saveApplication(application); //A131909 A130016
+  //console.log(" submit submitApplicationProcess ", application)
+    applicationStore.saveApplication(application); //A131909 A130016
 });
 
 var app = express();
@@ -87,6 +87,8 @@ function handleSucess(res, reason, message, code) {
   res.status(code || 201).json({ "success": message });
 }
 
+
+
 app.all("/*", auth);
 
 app.post("/api/v0/application", function (req, res) {
@@ -113,11 +115,32 @@ app.post("/api/v0/application", function (req, res) {
     console.log("In ELSE  leadSource: " + req.body.leadSource);
     console.log("In ELSE  sourceId: " + req.body.sourceId);
 
-    //then emit save application to PG
-    submitApplicationProcess.emit('submit-application', req);
-    //emit sync response
-    handleSucess(res, "notification done", 201);
-    //res.end();
+    if (req.body.callbackTime == 'Online') {
+      return new Promise(function (resolve, reject) {
+        applicationStore.saveOnlineApplication(req, res, function (err, response) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(response);
+            //handleSucess(response, "notification done", 201);
+          }
+        }, {
+            timeout: 5000
+          }, {
+            time: true
+          });
+      });
+
+    } else {
+      submitApplicationProcess.emit('submit-application', req);
+      //emit sync response
+      handleSucess(res, "notification done", 201);
+      res.end();
+    }
+
   }
+
+
+
 });
 module.exports = app;

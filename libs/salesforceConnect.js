@@ -204,7 +204,7 @@ createAccount = (application, salesforceID) => {
   }
 
   if (application.body.applicantDetails[0].dateOfBirth) {
-    var dob = dateFormat(application.body.dateOfBirth, "dd/mm/yyyy");
+    var dob = dateFormat(application.body.applicantDetails[0].dateOfBirth, "dd/mm/yyyy");
     account.set('Date_Of_Birth__pc', dob);
   }
 
@@ -480,7 +480,7 @@ exports.saveOnlineApplication = (application, response) => {
               //console.log(" OOOOOOONNNNNN ---------- ", onlineUrl);  
             }, 7000);
 
-           
+
           }
           if (err) {
             oppertunityStatusFlag = false;

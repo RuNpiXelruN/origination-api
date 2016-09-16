@@ -117,8 +117,8 @@ createOpportunity = (application, accountID) => {
   }
   oppertunity.set('X3rd_Party_Lead_Number__c', application.body.uniqueId);
   oppertunity.set('Promo_Loan_Offer_amount__c', application.body.loanAmount); //application.body.loanAmount
-  oppertunity.set('Loan_Purpose__c', '5600'); //Car purchase
-  oppertunity.set('Loan_Term__c', '4 years'); // application.body.loanTerm
+  oppertunity.set('Loan_Purpose__c', application.body.loanType); //Car purchase loanType
+  oppertunity.set('Loan_Term__c', application.body.loanTerm); // application.body.loanTerm
   oppertunity.set('X3rd_Party_Photo__c', application.body.imageUrl);
   oppertunity.set('X3rd_Party_Photo_Tag__c', application.body.imageTag);
   oppertunity.set('CallBack_Time__c', application.body.callbackTime);
@@ -129,16 +129,19 @@ createOpportunity = (application, accountID) => {
   var todayDate = dateFormat(myDate, 'yyyy-mm-dd');
   var cdate = '';
   var formattedClosedate = '';
+  var propensityScore = '';
   console.log(" DATE ------ ", todayDate);
   console.log(" Lead Status ", leadStatus);
 
   if (leadStatus == 'Complete') {
     cdate = addDays(todayDate, 30);
     formattedClosedate = dateFormat(cdate, 'yyyy-mm-dd');
+    propensityScore = 9000;
   }
   if (leadStatus == 'Incomplete') {
-    cdate = addDays(todayDate, 1);
+    cdate = addDays(todayDate, 30);
     formattedClosedate = dateFormat(cdate, 'yyyy-mm-dd');
+    propensityScore = 8999;
   }
 
   console.log(' Lead Name :', leadName);
@@ -162,6 +165,8 @@ createOpportunity = (application, accountID) => {
   oppertunity.set('StageName', 'New');
   oppertunity.set('Region__c', 'AU');
   oppertunity.set('AccountId', accountID);
+  oppertunity.set('Propensity_Score__c', propensityScore);
+  oppertunity.set('Live_Propensity_Score__c', propensityScore);
 
   console.log(' END  oppertunity Object  :');
   return oppertunity;
@@ -221,6 +226,7 @@ createAccount = (application, salesforceID) => {
 createRelatedDcoument = (application, salesforceID) => {
   console.log(' Inside create Related Dcoument  Object  :');
   document = nforce.createSObject('Related_Document__c');
+  document.set('Title__c', 'PicStarter Transcript');
   document.set('Document_Category__c', 'Supporting Documents');
   document.set('GE_Link_Type__c', 'Generated Document');
   document.set('Type__c', 'PicStarter Transcript');

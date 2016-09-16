@@ -116,9 +116,9 @@ createOpportunity = (application, accountID) => {
     loanPurpose = '';
   }
   oppertunity.set('X3rd_Party_Lead_Number__c', application.body.uniqueId);
-  oppertunity.set('Promo_Loan_Offer_amount__c', application.body.loanAmount);
-  oppertunity.set('Loan_Purpose__c', application.body.loanPurpose); //Car purchase
-  oppertunity.set('Loan_Term__c', application.body.loanTerm);
+  oppertunity.set('Promo_Loan_Offer_amount__c', application.body.loanAmount); //application.body.loanAmount
+  oppertunity.set('Loan_Purpose__c', '5600'); //Car purchase
+  oppertunity.set('Loan_Term__c', '4 years'); // application.body.loanTerm
   oppertunity.set('X3rd_Party_Photo__c', application.body.imageUrl);
   oppertunity.set('X3rd_Party_Photo_Tag__c', application.body.imageTag);
   oppertunity.set('CallBack_Time__c', application.body.callbackTime);

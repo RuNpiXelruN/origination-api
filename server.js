@@ -115,7 +115,7 @@ app.post("/api/v0/application", function (req, res) {
     console.log("In ELSE  leadSource: " + req.body.leadSource);
     console.log("In ELSE  sourceId: " + req.body.sourceId);
 
-    if (req.body.callbackTime == 'Online') {
+    if (req.body.callbackTime == 'online') {
       return new Promise(function (resolve, reject) {
         applicationStore.saveOnlineApplication(req, res, function (err, response) {
           if (err) {
